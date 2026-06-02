@@ -24,18 +24,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-repo_root    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 analysis_dir = os.path.join(repo_root, 'output', 'analysis')
-fig_dir      = os.path.join(analysis_dir, 'figures')
+fig_dir = os.path.join(analysis_dir, 'figures')
 os.makedirs(fig_dir, exist_ok=True)
 
 df = pd.read_csv(os.path.join(analysis_dir, 'cross_platform_detailed_stats_filtered.csv'))
 
 plt.rcParams.update({
     "font.family": "serif",
-    "font.size":   10,
+    "font.size": 10,
     "axes.labelsize": 12,
-    "figure.dpi":  200
+    "figure.dpi": 200
 })
 sns.set_style("whitegrid")
 
@@ -48,9 +48,9 @@ def clean_var_names(name):
 
 
 def prepare_and_plot(df, var_type='all', metric='Rel'):
-    mask       = df['Variable'].str.contains('_all') if var_type == 'all' \
+    mask = df['Variable'].str.contains('_all') if var_type == 'all' \
                  else df['Variable'].str.contains('_x|_y|_z')
-    df_f       = df[mask].copy()
+    df_f = df[mask].copy()
     df_f['Variable_Clean'] = df_f['Variable'].apply(clean_var_names)
 
     platforms = {'MatPy': 'MAT vs Py', 'MatR': 'MAT vs R', 'RPy': 'R vs Py'}

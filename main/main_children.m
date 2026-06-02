@@ -7,7 +7,7 @@
 %   Folder:    data/CP child gait data/td/ (all *.csv in that directory)
 %   Structure: filenames follow the pattern TD<subject><trial>.csv
 %              (e.g., TD12a.csv); first column is time [s], remaining
-%              columns are positions in millimetres; sampling rate derived
+%              columns are positions in millimeters; sampling rate derived
 %              from the time column.
 %
 % Requirements
@@ -25,23 +25,23 @@
 
 clear
 
-repo_root  = fileparts(fileparts(mfilename('fullpath')));
+repo_root = fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(repo_root, 'pkg'));
 
 min_D = 0.003;
 min_T = 0.1;
 min_V = 0.01;
-lp    = 10;
+lp = 10;
 order = 4;
 
-data_dir   = fullfile(repo_root, 'data', 'CP child gait data', 'td');
+data_dir = fullfile(repo_root, 'data', 'CP child gait data', 'td');
 output_dir = fullfile(repo_root, 'output', 'children');
 if ~exist(output_dir, 'dir'), mkdir(output_dir); end
 
 var_names = {'file', 'ind', 'task', 'trial'};
 var_types = {'int16', 'string', 'string', 'string'};
 
-files        = dir(fullfile(data_dir, '*.csv'));
+files = dir(fullfile(data_dir, '*.csv'));
 number_files = length(files);
 
 tab = table('Size', [number_files length(var_types)], ...
@@ -49,19 +49,19 @@ tab = table('Size', [number_files length(var_types)], ...
 
 for i = 1 : number_files
 
-    file_path    = [files(i).folder filesep files(i).name];
+    file_path = [files(i).folder filesep files(i).name];
     [~, name, ~] = fileparts(files(i).name);
 
     tokens = regexp(name, 'TD(\d+)([a-z]?)', 'tokens');
     if ~isempty(tokens)
         subject = tokens{1}{1};
-        trial   = tokens{1}{2};
+        trial = tokens{1}{2};
     end
 
     task = "walk";
 
-    data       = readmatrix(file_path);
-    r          = data(:, 2:end);
+    data = readmatrix(file_path);
+    r = data(:, 2:end);
     sampleRate = 1 / mean(diff(data(:, 1)));
 
     output = MED_pkg(r, sampleRate, "mm", [min_D, min_T, min_V], [lp, order], ...
@@ -72,10 +72,10 @@ for i = 1 : number_files
     tab.task(i)  = task;
     tab.trial(i) = trial;
 
-    dims       = {'all', 'x', 'y', 'z'};
-    suffixes   = {'_all', '_x', '_y', '_z'};
+    dims = {'all', 'x', 'y', 'z'};
+    suffixes = {'_all', '_x', '_y', '_z'};
     directVars = {'D', 'V', 'T', 'N', 'Nt', 'W', 'R2', 'P'};
-    scaleVars  = {'alpha', 'K', 'R2_alpha'};
+    scaleVars = {'alpha', 'K', 'R2_alpha'};
 
     if ~isempty(output) && isfield(output, 'D')
         fields = fieldnames(output.D);
@@ -84,12 +84,12 @@ for i = 1 : number_files
     end
 
     for k = 1 : length(dims)
-        d       = dims{k};
-        sfx     = suffixes{k};
+        d = dims{k};
+        sfx = suffixes{k};
         hasData = any(strcmp(fields, d));
 
         for v = 1 : length(directVars)
-            varName     = directVars{v};
+            varName = directVars{v};
             targetField = [varName sfx];
             if hasData
                 tab.(targetField)(i) = output.(varName).(d);
@@ -99,7 +99,7 @@ for i = 1 : number_files
         end
 
         for v = 1 : length(scaleVars)
-            varName     = scaleVars{v};
+            varName = scaleVars{v};
             targetField = [varName sfx];
             if hasData
                 tab.(targetField)(i) = output.scaling.(varName).(d);

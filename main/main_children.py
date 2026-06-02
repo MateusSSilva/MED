@@ -38,21 +38,21 @@ repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(repo_root, 'pkg'))
 import MED_pkg as m
 
-data_dir   = os.path.join(repo_root, 'data', 'CP child gait data', 'td')
+data_dir = os.path.join(repo_root, 'data', 'CP child gait data', 'td')
 output_dir = os.path.join(repo_root, 'output', 'children')
 os.makedirs(output_dir, exist_ok=True)
 
-tab   = pd.DataFrame(columns=["file", "ind", "task", "trial"])
+tab = pd.DataFrame(columns=["file", "ind", "task", "trial"])
 files = glob.glob(os.path.join(data_dir, "**", "*.csv"), recursive=True)
 
 for i, file_path in enumerate(files):
-    file_name   = os.path.basename(file_path)
+    file_name = os.path.basename(file_path)
     name_no_ext = os.path.splitext(file_name)[0]
-    core_name   = name_no_ext.replace("TD", "")
+    core_name = name_no_ext.replace("TD", "")
 
     if core_name[-1].isalpha():
         subject = core_name[:-1]
-        trial   = core_name[-1]
+        trial = core_name[-1]
 
     task = "walk"
 
@@ -64,7 +64,7 @@ for i, file_path in enumerate(files):
         print(f"Error reading {file_name}: {e}")
         continue
 
-    r          = data[:, 1:]
+    r = data[:, 1:]
     time_diffs = np.diff(data[:, 0])
     sampleRate = 1 / np.mean(time_diffs) if len(time_diffs) > 0 and np.mean(time_diffs) != 0 else np.nan
 
@@ -73,10 +73,10 @@ for i, file_path in enumerate(files):
                    np.array([10, 4]),
                    ["scaling", "D", "V", "T", "N", "Nt", "W", "R2", "P", "ME", "timeSeries"])
 
-    dims        = {'all': '_all', 'x': '_x', 'y': '_y', 'z': '_z'}
+    dims = {'all': '_all', 'x': '_x', 'y': '_y', 'z': '_z'}
     direct_vars = ['D', 'V', 'T', 'N', 'Nt', 'W', 'R2', 'P']
-    scale_vars  = ['alpha', 'K', 'R2_alpha']
-    row_data    = {"file": i, "ind": subject, "task": task, "trial": trial}
+    scale_vars = ['alpha', 'K', 'R2_alpha']
+    row_data = {"file": i, "ind": subject, "task": task, "trial": trial}
 
     for d, suffix in dims.items():
         if d in output.index:

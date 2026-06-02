@@ -1,10 +1,8 @@
 # MED — Movement Element Decomposition Package
 
-Studying human motor control requires metrics that are both sensitive to underlying physiological phenomena and interpretable in clinical and research contexts. The Movement Element Decomposition (MED) method was developed to address this need: grounded in motor primitive and movement optimization theories, it segments a continuous kinematic recording into discrete movement elements (MEs) and extracts features that are robust and directly linked to known mechanisms of motor control.
+Studying human motor control requires metrics that are both sensitive to underlying physiological phenomena and interpretable in clinical and research contexts. The Movement Element Decomposition (MED) method was developed to address this need: grounded in motor-primitive and movement-optimization theories, it segments a continuous kinematic recording into discrete movement elements (MEs) and extracts features that are robust and directly linked to known mechanisms of motor control.
 
-This repository provides a unified, open-source implementation of MED across the three principal scientific computing platforms (MATLAB, Python, and R) in a single package file per language. The toolbox automates low-pass filtering, velocity-based segmentation, and the extraction of three categories of features per movement element: global features (displacement, velocity, duration, element count and rate), shape features (similarity to the minimum-jerk bell profile and peak count), and scaling features (the power-law exponent and coefficient of the velocity–displacement relationship). 
-
-Cross-platform numerical equivalence was confirmed on three independent datasets, with a maximum absolute error below 10⁻⁴ across all variables — an order of magnitude smaller than the baseline biological signals used in movement analysis.
+This repository provides a unified, open-source implementation of MED across the three principal scientific computing platforms (MATLAB, Python, and R) in a single package file per language. The toolbox automates low-pass filtering, velocity-based segmentation, and the extraction of three categories of features per movement element: global features (displacement, velocity, duration, element count, and rate), shape features (similarity to the minimum-jerk bell profile and peak count), and scaling features (the power-law exponent and coefficient of the velocity–displacement relationship).
 
 ---
 
@@ -188,7 +186,7 @@ Each field is a struct / dict / named list indexed by spatial dimension (`x`, `y
 
 ## Output File Format
 
-Each main script produces one CSV with one row per trial. Column names follow the pattern `<variable>_<dimension>`:
+Each main script produces a single CSV file with one row per trial. Column names follow the pattern `<variable>_<dimension>`:
 
 ```
 file, ind, task, trial,
@@ -207,7 +205,7 @@ The dimensions present depend on the dataset: the upper-limb dataset produces `_
 
 Each call to the main function executes the following steps in sequence:
 
-1. **Unit conversion** — input coordinates are normalized to metres.
+1. **Unit conversion** — input coordinates are normalized to meters.
 2. **Low-pass filtering** — a zero-phase Butterworth filter suppresses high-frequency noise. Edge-effect samples are discarded unless `trim_border` is set to false.
 3. **Velocity computation** — instantaneous velocity is obtained by first-order finite differencing of the filtered position.
 4. **Segmentation** — velocity peaks and zero-crossings define candidate movement element boundaries per spatial dimension.
@@ -225,27 +223,25 @@ The shape features W and R² quantify how closely each ME's velocity profile res
 H(t) = V_mean · 30 · (t⁴ − 2t³ + t²),   t ∈ [0, 1]
 ```
 
-where t is normalised time and V_mean is the mean velocity of the element.
+where t is normalized time, and V_mean is the mean velocity of the element.
 
 ---
 
 ## How to Cite
 
-If you use this package in your research, please cite the following DOI:
-
-[![DOI](https://zenodo.org/badge/1256813107.svg)](https://doi.org/10.5281/zenodo.20503393)
+If you use this package in your research, please cite it as follows:
 
 **Plain Text Citation:**
-Author(s). (Year). MED — Movement Element Decomposition Package. Zenodo. https://doi.org/10.5281/zenodo.20503394
+Silva, M. S., Qadri, L., Vijay, N., Miranda, J. G. V., & Daneault, J.-F. (2026). MED — Movement Element Decomposition Package. Zenodo. https://doi.org/10.5281/zenodo.20503394
 
 **BibTeX:**
 ```bash
 @software{med_package,
-  author       = {Author Last Name, First Name},
-  title        = {MED — Movement Element Decomposition Package},
-  year         = {Year},
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.20503394},
-  url          = {https://doi.org/10.5281/zenodo.20503394}
+author       = {Silva, Mateus Souza and Qadri, Leila and Vijay, Neil and Miranda, José Garcia Vivas and Daneault, Jean-Francois},
+title        = {MED — Movement Element Decomposition Package},
+year         = {2026},
+publisher    = {Zenodo},
+doi          = {10.5281/zenodo.20503394},
+url          = {https://doi.org/10.5281/zenodo.20503394}
 }
 ```

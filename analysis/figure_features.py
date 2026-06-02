@@ -25,7 +25,6 @@ output/analysis/figures/combined_dataset_boxplots.png
 """
 
 import os
-import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -42,7 +41,7 @@ datasets = [
         'files': {
             'MATLAB': 'output_upper_matlab.csv',
             'Python': 'output_upper_python.csv',
-            'R':      'output_upper_R.csv'
+            'R': 'output_upper_R.csv'
         }
     },
     {
@@ -51,7 +50,7 @@ datasets = [
         'files': {
             'MATLAB': 'output_children_matlab.csv',
             'Python': 'output_children_python.csv',
-            'R':      'output_children_R.csv'
+            'R': 'output_children_R.csv'
         }
     },
     {
@@ -60,17 +59,17 @@ datasets = [
         'files': {
             'MATLAB': 'output_adult_matlab.csv',
             'Python': 'output_adult_python.csv',
-            'R':      'output_adult_R.csv'
+            'R': 'output_adult_R.csv'
         }
     }
 ]
 
 base_features  = ['D', 'V', 'T', 'N', 'Nt', 'W', 'R2', 'P', 'alpha', 'K']
-features       = [f"{feat}_all" for feat in base_features]
-platforms      = ['MATLAB', 'Python', 'R']
+features = [f"{feat}_all" for feat in base_features]
+platforms = ['MATLAB', 'Python', 'R']
 custom_palette = ["#b0d0b7", "#6ea7b1", "#5579a4"]
-min_N          = 2
-min_R2         = 0.7
+min_N = 2
+min_R2 = 0.7
 
 fig    = plt.figure(figsize=(20, 24))
 subfigs = fig.subfigures(nrows=len(datasets), ncols=1, hspace=0.05)
@@ -80,7 +79,7 @@ for ds_idx, ds in enumerate(datasets):
 
     subfig = subfigs[ds_idx]
     subfig.suptitle(f"Dataset: {ds['name']}", fontsize=16, fontweight='bold')
-    axes   = subfig.subplots(nrows=2, ncols=5).flatten()
+    axes = subfig.subplots(nrows=2, ncols=5).flatten()
 
     df_list = []
 
@@ -91,9 +90,9 @@ for ds_idx, ds in enumerate(datasets):
             print(f"  Warning: {csv_path} not found.")
             continue
 
-        df        = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path)
         cols_keep = [col for col in features if col in df.columns]
-        df_sub    = df[cols_keep].copy()
+        df_sub = df[cols_keep].copy()
 
         for col in cols_keep:
             df_sub[col] = pd.to_numeric(df_sub[col], errors='coerce')

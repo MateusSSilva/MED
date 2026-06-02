@@ -39,25 +39,25 @@ repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(repo_root, 'pkg'))
 import MED_pkg as m
 
-data_dir   = os.path.join(repo_root, 'data', 'dataset_Adult_Gait')
+data_dir = os.path.join(repo_root, 'data', 'dataset_Adult_Gait')
 output_dir = os.path.join(repo_root, 'output', 'adult')
 os.makedirs(output_dir, exist_ok=True)
 
-tab   = pd.DataFrame(columns=["file", "ind", "task", "trial"])
+tab = pd.DataFrame(columns=["file", "ind", "task", "trial"])
 files = glob.glob(os.path.join(data_dir, "**", "*pos.csv"), recursive=True)
 
 for i, file_path in enumerate(files):
     file_name = os.path.basename(file_path)
-    parts     = file_name.split("_")
-    subject   = parts[1]
-    trial     = parts[2]
-    task      = "walk"
+    parts = file_name.split("_")
+    subject = parts[1]
+    trial = parts[2]
+    task = "walk"
 
     print(f"Processing: {file_name} | Subject: {subject} | Task: {task} | Trial: {trial}")
 
     try:
         data = pd.read_csv(file_path, header=0).values
-        r    = data[:, 1:4]
+        r = data[:, 1:4]
     except Exception as e:
         print(f"Error reading {file_name}: {e}")
         continue
@@ -67,10 +67,10 @@ for i, file_path in enumerate(files):
                    np.array([10, 4]),
                    ["scaling", "D", "V", "T", "N", "Nt", "W", "R2", "P", "ME", "timeSeries"])
 
-    dims        = {'all': '_all', 'x': '_x', 'y': '_y', 'z': '_z'}
+    dims = {'all': '_all', 'x': '_x', 'y': '_y', 'z': '_z'}
     direct_vars = ['D', 'V', 'T', 'N', 'Nt', 'W', 'R2', 'P']
-    scale_vars  = ['alpha', 'K', 'R2_alpha']
-    row_data    = {"file": i, "ind": subject, "task": task, "trial": trial}
+    scale_vars = ['alpha', 'K', 'R2_alpha']
+    row_data = {"file": i, "ind": subject, "task": task, "trial": trial}
 
     for d, suffix in dims.items():
         if d in output.index:

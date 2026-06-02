@@ -7,7 +7,7 @@
 #   that is the processed version with positional trajectories of the 
 #   original IMU derived file
 #   Structure: each CSV contains a header row; columns are [ignored, X, Y, Z]
-#              in metres; sampling rate is fixed at 100 Hz. Filename format:
+#              in meters; sampling rate is fixed at 100 Hz. Filename format:
 #              <prefix>_<subject>_<trial>_pos.csv.
 #
 # Requirements
@@ -27,7 +27,7 @@ library(here)
 
 source(here("pkg", "MED_pkg.R"))
 
-data_dir   <- here("data", "dataset_Adult_Gait")
+data_dir <- here("data", "dataset_Adult_Gait")
 output_dir <- here("output", "adult")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -37,32 +37,32 @@ files <- list.files(path = data_dir, pattern = "pos\\.csv$",
                     recursive = TRUE, full.names = TRUE)
 
 for (i in seq_along(files)) {
-    file_path  <- files[i]
-    file_name  <- basename(file_path)
+    file_path <- files[i]
+    file_name <- basename(file_path)
     name_parts <- strsplit(file_name, "_")[[1]]
-    subject    <- name_parts[2]
-    task       <- "walk"
-    trial      <- name_parts[3]
+    subject <- name_parts[2]
+    task <- "walk"
+    trial <- name_parts[3]
 
     movementData <- as.matrix(read.csv(file_path, header = TRUE)[, 2:4])
-    FPS          <- 100
+    FPS <- 100
 
     cat(sprintf("Processing: %s | Subject: %s | FPS: %.2f\n", file_name, subject, FPS))
 
     output <- MED(movementData, FPS,
-                  unit   = "m",
+                  unit = "m",
                   limits = c(0.003, 0.1, 0.01),
                   filter = c(10, 4))
 
-    dims        <- c("all", "x", "y", "z")
-    suffixes    <- c("_all", "_x", "_y", "_z")
+    dims <- c("all", "x", "y", "z")
+    suffixes <- c("_all", "_x", "_y", "_z")
     direct_vars <- c("D", "V", "T", "N", "Nt", "W", "R2", "P")
-    scale_vars  <- c("alpha" = "alpha", "K" = "K", "R2" = "R2_alpha")
+    scale_vars <- c("alpha" = "alpha", "K" = "K", "R2" = "R2_alpha")
 
     row_list <- list(file = i, ind = subject, task = task, trial = trial)
 
     for (k in seq_along(dims)) {
-        d   <- dims[k]
+        d <- dims[k]
         sfx <- suffixes[k]
         for (var in direct_vars) {
             val <- output[[var]][[d]]

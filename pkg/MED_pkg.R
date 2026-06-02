@@ -16,7 +16,7 @@
 # ----------------
 # Raw position data undergoes the following sequential processing steps:
 #
-#   1. Unit conversion    — input coordinates are normalised to metres.
+#   1. Unit conversion    — input coordinates are normalised to meters.
 #   2. Low-pass filtering — a zero-phase Butterworth filter (default: 4th order,
 #      10 Hz cutoff) removes high-frequency noise while preserving movement
 #      kinematics. Border samples affected by filter edge effects are discarded
@@ -70,7 +70,7 @@
 #
 # How to cite
 # -----------
-# DOI: https://doi.org/10.5281/zenodo.20503393
+# DOI: 
 #
 # Usage example
 # -------------
@@ -99,28 +99,37 @@ segment_MED <- function(t, r, v, min_D, min_T, min_V) {
     # Returns:
     #   Matrix with two columns (start, end frame indices), or NULL.
 
-    pos_peaks    <- pracma::findpeaks(v)
+    # Find peaks
+    pos_peaks <- pracma::findpeaks(v)
     pk_pos_index <- pos_peaks[, 2]
 
-    neg_peaks    <- pracma::findpeaks(-v)
+    neg_peaks <- pracma::findpeaks(-v)
     pk_neg_index <- neg_peaks[, 2]
 
+    # Combine and sort the indices of all critical points
     pk_index <- sort(c(pk_pos_index, pk_neg_index))
+
+    # Classify peaks based on their velocity relative to the min_V threshold
     pk_class <- rep(NA, length(pk_index))
     pk_class[v[pk_index] >  min_V] <-  1
     pk_class[v[pk_index] < -min_V] <- -1
     pk_class[abs(v[pk_index]) <= min_V] <- 0
 
-    if (length(pk_class) < 3 || sum(abs(pk_class), na.rm = TRUE) == 0) return(NULL)
+    # Early exit if there are too few critical points or no significant peaks
+    if (length(pk_class) < 3 || sum(abs(pk_class), na.rm = TRUE) == 0) {
+        return(NULL)
+    }
 
+    # Find points that cross zero velocity between critical points
     buffer_index <- rep(0, length(pk_index) * 2)
     buffer_class <- rep(0, length(pk_class) * 2)
     j <- 1
 
+    # HEAD — before the first peak: find zero-crossing
     if (pk_class[1] != 0 && pk_index[1] > 1) {
         range_vals <- abs(v[1 : (pk_index[1] - 1)])
-        loc        <- which.min(range_vals)
-        min_val    <- range_vals[loc]
+        loc <- which.min(range_vals)
+        min_val <- range_vals[loc]
         if (min_val <= min_V) {
             buffer_index[j] <- loc
             buffer_class[j] <- 0
@@ -128,16 +137,19 @@ segment_MED <- function(t, r, v, min_D, min_T, min_V) {
         }
     }
 
+    # BODY — loop through all peaks
     for (i in 1 : length(pk_class)) {
+        # Add the current peak to the buffer
         buffer_index[j] <- pk_index[i]
         buffer_class[j] <- pk_class[i]
         j <- j + 1
 
+        # If sign changes between adjacent peaks, insert a zero-crossing between them
         if (i < length(pk_class)) {
             if (abs(pk_class[i] - pk_class[i + 1]) == 2 && (pk_index[i + 1] - pk_index[i]) > 1) {
-                range_idxs      <- pk_index[i] : pk_index[i + 1]
+                range_idxs <- pk_index[i] : pk_index[i + 1]
                 current_segment <- abs(v[range_idxs])
-                loc             <- which.min(current_segment)
+                loc <- which.min(current_segment)
                 buffer_index[j] <- range_idxs[loc]
                 buffer_class[j] <- 0
                 j <- j + 1
@@ -145,12 +157,13 @@ segment_MED <- function(t, r, v, min_D, min_T, min_V) {
         }
     }
 
+    # TAIL — after the last peak: find zero-crossing
     last_idx <- length(pk_index)
     if (pk_class[last_idx] != 0 && pk_index[last_idx] < length(v)) {
-        range_idxs      <- (pk_index[last_idx] + 1) : length(v)
+        range_idxs <- (pk_index[last_idx] + 1) : length(v)
         current_segment <- abs(v[range_idxs])
-        loc             <- which.min(current_segment)
-        min_val         <- current_segment[loc]
+        loc <- which.min(current_segment)
+        min_val <- current_segment[loc]
         if (min_val <= min_V) {
             buffer_index[j] <- range_idxs[loc]
             buffer_class[j] <- 0
@@ -158,39 +171,59 @@ segment_MED <- function(t, r, v, min_D, min_T, min_V) {
         }
     }
 
+    # Finalize variables
     pk_class <- abs(buffer_class[1 : (j - 1)])
     pk_index <- buffer_index[1 : (j - 1)]
 
+    # Creates a vector indicating transitions from zero to non-zero peak (element boundaries)
     seg_class <- diff(pk_class)
-    seg_i     <- pk_index[which(seg_class ==  1)]
-    seg_f     <- pk_index[which(seg_class == -1) + 1]
+    # seg_i: beginning of each element
+    seg_i <- pk_index[which(seg_class == 1)]
+    # seg_f: end of each element
+    seg_f <- pk_index[which(seg_class == -1) + 1]
 
-    if (length(seg_i) == 0 || length(seg_f) == 0) return(NULL)
-
-    if (length(seg_i) == 1 && length(seg_f) == 1) {
-        if (seg_i[1] >= seg_f[1]) return(NULL)
+    # Defensive checks for segments (empty or scalar)
+    if (length(seg_i) == 0 || length(seg_f) == 0) {
+        return(NULL)
     }
 
-    if (pk_class[length(pk_class)] == 1) seg_i <- seg_i[1 : (length(seg_i) - 1)]
-    if (pk_class[1]                == 1) seg_f <- seg_f[2 : length(seg_f)]
+    if (length(seg_i) == 1 && length(seg_f) == 1) {
+        if (seg_i[1] >= seg_f[1]) {
+            return(NULL)
+        }
+    }
 
+    # If the movement ends with peak velocity with no 0 after the last peak
+    if (pk_class[length(pk_class)] == 1) {
+        seg_i <- seg_i[1 : (length(seg_i) - 1)]
+    }
+    # If the movement starts with peak velocity with no 0 before the first peak
+    if (pk_class[1] == 1) {
+        seg_f <- seg_f[2 : length(seg_f)]
+    }
+
+    # Handles the case where acceleration causes velocity to jump from <-min_V to >+min_V in one frame
     if (length(seg_f) > length(seg_i)) {
         seg_f <- seg_f[1 : length(seg_i)]
     } else if (length(seg_f) < length(seg_i)) {
         seg_i <- seg_i[1 : length(seg_f)]
     }
 
+    # Exclude segments where start equals end
     exclude <- (seg_f == seg_i)
-    seg_i   <- seg_i[!exclude]
-    seg_f   <- seg_f[!exclude]
+    seg_i <- seg_i[!exclude]
+    seg_f <- seg_f[!exclude]
 
-    ME   <- cbind(seg_i, seg_f)
+    ME <- cbind(seg_i, seg_f)
+
+    # Select elements that pass the displacement and duration filters
     keep <- rep(TRUE, nrow(ME))
-
     for (i in 1 : nrow(ME)) {
         displacement <- abs(r[ME[i, 2]] - r[ME[i, 1]])
-        duration     <- t[ME[i, 2]] - t[ME[i, 1]]
-        if (displacement < min_D || duration < min_T) keep[i] <- FALSE
+        duration <- t[ME[i, 2]] - t[ME[i, 1]]
+        if (displacement < min_D || duration < min_T) {
+            keep[i] <- FALSE
+        }
     }
 
     ME <- ME[keep, , drop = FALSE]
@@ -209,26 +242,27 @@ analyze_elements_MED <- function(t, r, v, ME) {
     #
     # Returns a named list: N, Nt, D, V, T, W, R2, peak.
 
-    N    <- nrow(ME)
-    Nt   <- N / (t[length(t)] - t[1])
-    D    <- numeric(N)
-    V    <- numeric(N)
-    T    <- numeric(N)
-    W    <- numeric(N)
-    R2   <- numeric(N)
+    N <- nrow(ME)
+    Nt <- N / (t[length(t)] - t[1])
+    D <- numeric(N)
+    V <- numeric(N)
+    T <- numeric(N)
+    W <- numeric(N)
+    R2 <- numeric(N)
     peak <- numeric(N)
 
+    # Loop through every movement element
     for (i in 1 : N) {
-        v_i    <- v[ME[i, 1] : ME[i, 2]]
-        t_i    <- t[ME[i, 1] : ME[i, 2]]
-        D[i]   <- abs(r[ME[i, 2]] - r[ME[i, 1]])
-        T[i]   <- t_i[length(t_i)] - t_i[1]
-        V[i]   <- abs(mean(v_i))
+        v_i <- v[ME[i, 1] : ME[i, 2]]
+        t_i <- t[ME[i, 1] : ME[i, 2]]
+        D[i] <- abs(r[ME[i, 2]] - r[ME[i, 1]])
+        T[i] <- t_i[length(t_i)] - t_i[1]
+        V[i] <- abs(mean(v_i))
         t_Hoff <- seq(0, 1, length.out = length(t_i))
-        Hoff   <- V[i] * 30 * ((t_Hoff^4) - 2*(t_Hoff^3) + (t_Hoff^2))
+        Hoff <- V[i] * 30 * ((t_Hoff^4) - 2*(t_Hoff^3) + (t_Hoff^2))
         dvHoff <- Hoff - v_i
-        W[i]   <- sd(dvHoff) / abs(V[i])
-        R2[i]  <- cor(Hoff, v_i)^2
+        W[i] <- sd(dvHoff) / abs(V[i])
+        R2[i] <- cor(Hoff, v_i)^2
         peak[i] <- nrow(pracma::findpeaks(abs(v_i)))
     }
 
@@ -247,25 +281,37 @@ scaling_MED <- function(D, V, name = NULL) {
     # Returns: named list(alpha, K, R2), or invisibly returns plot list if name
     #          is provided.
 
-    dim       <- names(D)
-    alpha     <- list()
-    K         <- list()
-    R2        <- list()
-    plot_list <- if (!is.null(name)) list() else NULL
+    # Number of dimensions
+    dim <- names(D)
 
+    # Initialize lists for scaling exponent (alpha), coefficient (K), and R^2
+    alpha <- list()
+    K <- list()
+    R2 <- list()
+
+    if (!is.null(name)) {
+        plot_list <- list()
+    } else {
+        plot_list <- NULL
+    }
+
+    # Iterate over each dimension
     for (i in seq_along(dim)) {
-        it   <- dim[i]
+        it <- dim[i]
+        # Take logarithm of displacement and velocity arrays
         logD <- log(D[[it]])
         logV <- log(V[[it]])
-        fit  <- lm(logV ~ logD)
-        p    <- coef(fit)
+        # Fit a line to log-log data (power-law: V = K * D^alpha)
+        fit <- lm(logV ~ logD)
+        p <- coef(fit)
 
-        alpha[[it]] <- unname(p[2])
-        K[[it]]     <- exp(unname(p[1]))
-        R2[[it]]    <- summary(fit)$r.squared
+        alpha[[it]] <- unname(p[2])         # Scaling exponent
+        K[[it]] <- exp(unname(p[1]))        # Scaling coefficient
+        R2[[it]] <- summary(fit)$r.squared  # R^2 value
 
+        # If name is provided, generate and plot the fit
         if (!is.null(name)) {
-            df    <- data.frame(D = D[[it]], V = V[[it]])
+            df <- data.frame(D = D[[it]], V = V[[it]])
             x_fit <- seq(min(logD), max(logD), length.out = 100)
             y_fit <- p[1] + p[2] * x_fit
             fit_df <- data.frame(D = exp(x_fit), V = exp(y_fit))
@@ -281,11 +327,14 @@ scaling_MED <- function(D, V, name = NULL) {
                 theme_minimal()
 
             plot_list[[it]] <- plt
+            # Save the plot if a filename is given
             ggsave(filename = paste0(name, "_", it, ".png"), plot = plt, width = 6, height = 4)
         }
     }
 
-    if (!is.null(name)) return(invisible(plot_list))
+    if (!is.null(name)) {
+        return(invisible(plot_list))
+    }
     return(list(alpha = alpha, K = K, R2 = R2))
 }
 
@@ -311,17 +360,36 @@ MED <- function(movementData, FPS, unit = 'm', limits = c(0.003, 0.1, 0.01),
         outputVar <- c("scaling", "D", "V", "T", "N", "Nt", "W", "R2", "P",
                        "D_all", "V_all", "T_all", "W_all", "R2_all", "P_all", "timeSeries", "ME")
     }
-    if (is.null(unit)   || unit == "")          unit    <- "m"
-    if (is.null(limits) || length(limits) != 3) limits  <- c(0.003, 0.1, 0.01)
-    if (is.null(filter) || length(filter) != 2) filter  <- c(10, 4)
+
+    # Conditional for if args is >= 3, setting units
+    if (is.null(unit) || unit == "") {
+        unit <- "m"
+    }
+
+    # Conditional for if args is >= 4, setting limits for identifying valid movement elements
+    # min_D is the minimum displacement [m], min_T is the minimum duration [s], min_V is the minimum velocity [m/s]
+    if (is.null(limits) || length(limits) != 3) {
+        limits <- c(0.003, 0.1, 0.01)
+    }
+
+    # Conditional for if args is >= 5; lp is low-pass cutoff [Hz], order is filter order
+    if (is.null(filter) || length(filter) != 2) {
+        filter <- c(10, 4)
+    }
 
     min_D <- limits[1]; min_T <- limits[2]; min_V <- limits[3]
-    lp    <- filter[1]; order <- filter[2]
+    lp <- filter[1]; order <- filter[2]
 
-    if (unit == "mm") movementData <- movementData / 1000
-    if (unit == "cm") movementData <- movementData / 100
+    # Convert units to meters if necessary
+    if (unit == "mm") {
+        movementData <- movementData / 1000
+    }
+    if (unit == "cm") {
+        movementData <- movementData / 100
+    }
 
-    bf           <- gsignal::butter(order, (2 * lp) / FPS)
+    # Apply Butterworth low-pass filter to position data
+    bf <- gsignal::butter(order, (2 * lp) / FPS)
     movementData <- apply(movementData, 2, function(col) gsignal::filtfilt(bf$b, bf$a, col))
 
     borderEffect <- round(2 * FPS / lp * order / 4)
@@ -329,7 +397,8 @@ MED <- function(movementData, FPS, unit = 'm', limits = c(0.003, 0.1, 0.01),
         movementData <- movementData[(borderEffect + 1) : (nrow(movementData) - borderEffect), , drop = FALSE]
     }
 
-    v            <- apply(movementData, 2, function(col) diff(col) * FPS)
+    # Calculate velocity and time
+    v <- apply(movementData, 2, function(col) diff(col) * FPS)
     movementData <- movementData[1 : (nrow(movementData) - 1), , drop = FALSE]
 
     if (is.null(t)) {
@@ -337,7 +406,9 @@ MED <- function(movementData, FPS, unit = 'm', limits = c(0.003, 0.1, 0.01),
     }
 
     timeSeries <- list(r = movementData, v = v, t = t)
-    nDim       <- ncol(movementData)
+
+    # Determine dimensionality and prepare labels
+    nDim <- ncol(movementData)
 
     if (nDim == 1) {
         dimLabels <- "all"
@@ -346,68 +417,82 @@ MED <- function(movementData, FPS, unit = 'm', limits = c(0.003, 0.1, 0.01),
     }
 
     keepMask <- rep(FALSE, nDim)
-    ME       <- list()
+    ME <- list()
 
+    # Find frames delimiting valid movement elements per dimension
     for (i in 1 : nDim) {
-        lbl       <- dimLabels[i]
+        lbl <- dimLabels[i]
         currentME <- segment_MED(timeSeries$t, timeSeries$r[, i], timeSeries$v[, i], min_D, min_T, min_V)
         ME[[lbl]] <- currentME
-        if (!is.null(currentME) && nrow(currentME) > 0) keepMask[i] <- TRUE
+        if (!is.null(currentME) && nrow(currentME) > 0) {
+            keepMask[i] <- TRUE
+        }
     }
 
     timeSeries$r <- timeSeries$r[, keepMask, drop = FALSE]
     timeSeries$v <- timeSeries$v[, keepMask, drop = FALSE]
 
     validLabels <- dimLabels[keepMask]
-    nValid      <- length(validLabels)
+    nValid <- length(validLabels)
 
-    if (nValid == 0) return(NULL)
+    if (nValid == 0) {
+        return(NULL)
+    }
 
     N <- list(); Nt <- list()
     D_all <- list(); V_all <- list(); T_all <- list()
     W_all <- list(); R2_all <- list(); P_all <- list()
 
+    # Analyze movement elements per dimension
     for (i in 1 : nValid) {
-        lbl        <- validLabels[i]
-        res        <- analyze_elements_MED(timeSeries$t, timeSeries$r[, i], timeSeries$v[, i], ME[[lbl]])
-        N[[lbl]]    <- res$N
-        Nt[[lbl]]   <- res$Nt
+        lbl <- validLabels[i]
+        res <- analyze_elements_MED(timeSeries$t, timeSeries$r[, i], timeSeries$v[, i], ME[[lbl]])
+        N[[lbl]] <- res$N
+        Nt[[lbl]] <- res$Nt
         D_all[[lbl]] <- res$D
         V_all[[lbl]] <- res$V
         T_all[[lbl]] <- res$T
         W_all[[lbl]] <- res$W
         R2_all[[lbl]] <- res$R2
-        P_all[[lbl]]  <- res$peak
+        P_all[[lbl]] <- res$peak
     }
 
+    # Initialize combined results across all dimensions
     if (nDim > 1 && nValid > 0) {
         combine_dims <- function(dataList) unlist(dataList[validLabels])
-        D_all$all    <- combine_dims(D_all)
-        V_all$all    <- combine_dims(V_all)
-        T_all$all    <- combine_dims(T_all)
-        W_all$all    <- combine_dims(W_all)
-        R2_all$all   <- combine_dims(R2_all)
-        P_all$all    <- combine_dims(P_all)
-        N$all        <- sum(unlist(N[validLabels]))
-        Nt$all       <- N$all / (t[length(t)] - t[1])
+        D_all$all <- combine_dims(D_all)
+        V_all$all <- combine_dims(V_all)
+        T_all$all <- combine_dims(T_all)
+        W_all$all <- combine_dims(W_all)
+        R2_all$all <- combine_dims(R2_all)
+        P_all$all <- combine_dims(P_all)
+        N$all <- sum(unlist(N[validLabels]))
+        # Weighted average movement element rate
+        Nt$all <- N$all / (t[length(t)] - t[1])
     }
 
-    if (!"all" %in% dimLabels) dimLabels <- c(dimLabels, "all")
+    if (!"all" %in% dimLabels) {
+        dimLabels <- c(dimLabels, "all")
+    }
 
+    # Compute scaling law from displacement and velocity
     if ("scaling" %in% outputVar) {
         scaling <- scaling_MED(D_all, V_all, scaling_plot_name)
     }
 
     D <- list(); V <- list(); T <- list(); W <- list(); R2 <- list(); P <- list()
+
+    # Compute average values per dimension
     for (it in dimLabels) {
-        D[[it]]  <- mean(D_all[[it]])
-        V[[it]]  <- mean(V_all[[it]])
-        T[[it]]  <- mean(T_all[[it]])
-        W[[it]]  <- mean(W_all[[it]])
+        D[[it]] <- mean(D_all[[it]])
+        V[[it]] <- mean(V_all[[it]])
+        T[[it]] <- mean(T_all[[it]])
+        W[[it]] <- mean(W_all[[it]])
         R2[[it]] <- mean(R2_all[[it]])
-        P[[it]]  <- mean(P_all[[it]])
+        P[[it]] <- mean(P_all[[it]])
     }
 
+    # Populate output with selected fields
     output <- list()
     for (varName in outputVar) {
         if (exists(varName, inherits = FALSE)) {
