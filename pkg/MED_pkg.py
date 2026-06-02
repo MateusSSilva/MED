@@ -73,8 +73,7 @@ Notes
 
 How to cite
 -----------
-GitHub DOI
-
+DOI: https://doi.org/10.5281/zenodo.20503393
 
 """
 

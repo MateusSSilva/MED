@@ -232,3 +232,20 @@ where t is normalised time and V_mean is the mean velocity of the element.
 ## How to Cite
 
 If you use this package in your research, please cite the following DOI:
+
+[![DOI](https://zenodo.org/badge/1256813107.svg)](https://doi.org/10.5281/zenodo.20503393)
+
+**Plain Text Citation:**
+Author(s). (Year). MED — Movement Element Decomposition Package. Zenodo. https://doi.org/10.5281/zenodo.20503394
+
+**BibTeX:**
+```bash
+@software{med_package,
+  author       = {Author Last Name, First Name},
+  title        = {MED — Movement Element Decomposition Package},
+  year         = {Year},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.20503394},
+  url          = {https://doi.org/10.5281/zenodo.20503394}
+}
+```
