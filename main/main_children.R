@@ -1,7 +1,7 @@
 # main_children.R
 # ----------------
 # Applies the MED algorithm to the CP Child Gait dataset (3-D marker
-# positions), typically containing typically developing (TD) children.
+# positions), containing typically developing (TD) children.
 #
 # Dataset
 #   Folder:    data/CP child gait data/td/ (all *.csv in that directory)
@@ -11,8 +11,7 @@
 #              from the time column.
 #
 # Requirements
-#   pkg/MED_pkg.R (profile_MED, rescaling_MED, cost_e, and dbscan_MED removed).
-#   Run from the repository root: setwd("path/to/MED_pkg")
+#   pkg/MED_pkg.R
 #
 # Parameters
 #   unit  mm  |  min_D 0.003 m  |  min_T 0.1 s  |  min_V 0.01 m/s

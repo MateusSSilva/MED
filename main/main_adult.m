@@ -7,7 +7,7 @@
 %   that is the processed version with positional trajectories of the 
 %   original IMU derived file
 %   Structure: each CSV contains a header row, with columns
-%              [ignored, X, Y, Z] in meters; sampling rate fixed at 100 Hz.
+%              [t, X, Y, Z] in meters; sampling rate fixed at 100 Hz.
 %
 % Requirements
 %   pkg/MED_pkg.m must be on the MATLAB path (added automatically below).
@@ -35,7 +35,9 @@ order = 4;
 
 data_dir = fullfile(repo_root, 'data', 'dataset_Adult_Gait');
 output_dir = fullfile(repo_root, 'output', 'adult');
-if ~exist(output_dir, 'dir'), mkdir(output_dir); end
+if ~exist(output_dir, 'dir')
+    mkdir(output_dir);
+end
 
 var_names = {'file', 'ind', 'task', 'trial'};
 var_types = {'int16', 'string', 'string', 'string'};

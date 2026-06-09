@@ -15,7 +15,7 @@ Structure: each CSV contains a header row; columns are [ignored, X, Y, Z]
 
 Requirements
 ------------
-pkg/MED_pkg.py (profile_MED, rescaling_MED, and cost_e removed).
+pkg/MED_pkg.py
 
 Parameters
 ----------

@@ -70,14 +70,8 @@
 #
 # How to cite
 # -----------
-# DOI: https://doi.org/10.5281/zenodo.20510859
+# DOI: 
 #
-# Usage example
-# -------------
-# source("MED_pkg.R")
-# movementData <- as.matrix(read.csv("your_data.csv"))
-# FPS    <- 100
-# result <- MED(movementData, FPS)
 
 library(gsignal)
 library(signal)

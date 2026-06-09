@@ -1,7 +1,7 @@
 """
 figure_features.py
 ---------------------------------
-Generates a single consolidated figure with one 2×5 grid of boxplots per
+Generates a single figure with one 2×5 grid of boxplots per
 dataset, comparing the distribution of each kinematic variable across the
 three analysis platforms (MATLAB, Python, R).
 

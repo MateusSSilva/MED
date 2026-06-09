@@ -1,7 +1,7 @@
 % main_children.m
 % ---------------
 % Applies the MED algorithm to the CP Child Gait dataset (3-D marker
-% positions), typically containing typically developing (TD) children.
+% positions), containing typically developing (TD) children.
 %
 % Dataset
 %   Folder:    data/CP child gait data/td/ (all *.csv in that directory)

@@ -2,7 +2,7 @@
 main_children.py
 ----------------
 Applies the MED algorithm to the CP Child Gait dataset (3-D marker
-positions), typically containing typically developing (TD) children.
+positions), containing typically developing (TD) children.
 
 Dataset
 -------
@@ -14,7 +14,7 @@ Structure: filenames follow the pattern TD<subject><trial>.csv
 
 Requirements
 ------------
-pkg/MED_pkg.py (profile_MED, rescaling_MED, and cost_e removed).
+pkg/MED_pkg.py
 
 Parameters
 ----------

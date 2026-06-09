@@ -56,12 +56,12 @@ Notes
 
 How to cite
 -----------
-DOI: https://doi.org/10.5281/zenodo.20510859
+DOI: 
 
 %}
 
 function output = MED_pkg(varargin)
-% MED_pkg  Main entry point of the Movement Element Detection algorithm.
+% MED_pkg  Main entry point of the Movement Element Decomposition algorithm.
 %
 %   output = MED_pkg(movementData, FPS)
 %   output = MED_pkg(movementData, FPS, unit, limits, filter, outputVar)

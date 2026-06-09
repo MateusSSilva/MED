@@ -14,7 +14,7 @@ Folder:    data/complex-upper-limb-movements-1.0.0/ (searched recursively
 
 Requirements
 ------------
-pkg/MED_pkg.py (profile_MED, rescaling_MED, and cost_e removed).
+pkg/MED_pkg.py
 
 Parameters
 ----------
